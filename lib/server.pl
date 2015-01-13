@@ -1,39 +1,98 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+
+package DB::Drink;
+use base qw(DBIx::Class);
+__PACKAGE__->load_components(qw(PK::Auto Core));
+__PACKAGE__->table('drink');
+__PACKAGE__->add_columns(
+  id => {
+    data_type => 'integer',
+    is_auto_increment => 1
+  },
+  title => {
+    data_type => 'text',
+  },
+  description => {
+    data_type => 'text'
+  }
+);
+__PACKAGE__->set_primary_key('id');
+
+
+package DB;
+use base qw(DBIx::Class::Schema);
+__PACKAGE__->load_classes(qw(Drink));
+
+
+package main;
 use Mojolicious::Lite;
-use DBI;
 use File::Basename;
 use lib dirname (__FILE__);
-use MyConfig;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 use JSON;
+use Mojo::Log;
+my $log = Mojo::Log->new;
+use Data::Dumper;
 
+my $db = "$FindBin::Bin/drinks-i-like.db";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-sub get_dbh {
-        
-  my $db = MyConfig::db_name();
-  my $data_source = "dbi:mysql:database=${db};host=localhost";
-        
-  my $dbh = DBI->connect(
-                   $data_source,
-                   MyConfig::db_username(),
-                   MyConfig::db_password(),
-                   {
-                    RaiseError => 1,
-                    mysql_enable_utf8 => 1,
-                   });
 
-  return $dbh;
+sub build_database {
+  my $schema = get_schema();
+  my $dbh = $schema->storage->dbh;
+  my $sth = $dbh->prepare("select name from sqlite_master WHERE type='table' AND name='drink'");
+  $sth->execute();
+  my $name = $sth->fetchrow();
+  if (!$name) {
+    # build sqlite and add test data if needed
+    $schema->deploy();
+    $schema->resultset('Drink')->create({
+      title => 'milk',
+      description => '"Milk is for babies. When you grow up you have to drink beer." - Arnold Schwarzenegger'
+    });
+  }
+}
+
+my $schema;
+sub get_schema {
+  #return DB->connect("dbi:SQLite:dbname=$db");
+  return DB->connect("dbi:SQLite:dbname=drinks-i-like.db");
+  #return $schema || DB->connect("dbi:SQLite:dbname=:memory:");
 };
+
+sub handle_resultset {
+  my $rs = shift;
+  my $ref;
+  while (my $r = $rs->next) {
+    push @$ref, handle_result($r);
+  }
+  return $ref;;
+}
+
+sub handle_result {
+  my $r = shift;
+  return {
+    id => $r->id,
+    title => $r->title,
+    description => $r->description,
+  }
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Documentation browser under "/perldoc" (this plugin requires Perl 5.10)
-plugin 'pod_renderer';
+#plugin 'pod_renderer';
+plugin 'PODRenderer';
 
 # Set public/ directory path to project root
 app->static->paths->[0] = app->home->rel_dir('../public');
 #app->static->root( app->home->rel_dir('../public') );
+
+# build schema if needed
+build_database();
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Routes
@@ -73,20 +132,23 @@ sub handle_home {
 sub handle_get_drink {
   my $self = shift;
   
-  my $id          = $self->param( 'id' );
+  my $id = $self->param( 'id' );
 
   # Return error if missing parameter (400)
   if ( !defined($id) ) {
-    return $self->render_json( [], status => 400 );
+    return self->render(json => [], status => 400);
   }
-
-  return $self->render_json( get_drink_by_id( $id ), status => 200 );
+  else {
+    my $drink = get_drink_by_id( $id );
+    return $self->render(json => encode_json( handle_result( $drink )), status => 400);
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 sub handle_get_drinks {
   my $self = shift;
-  return $self->render_json( get_drinks() );
+  my $drinks = get_drinks();
+  return $self->render(json => encode_json( handle_resultset( $drinks )) );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -118,16 +180,17 @@ sub handle_post_drink {
 
   # Return error if missing parameter (400)
   if ( !defined($title) || !defined( $description ) ) {
-    return $self->render_json( [], status => 400 );
+    return $self->render(json => [], status => 400 );
   }
 
   # Return error if not add drink (conflict, 409)
-  if( ! add_drink( $title, $description ) ) {
-    return $self->render_json( [], status => 409 );
+  if ( ! add_drink( $title, $description ) ) {
+    return $self->render(json => [], status => 409);
   }
 
   # Return 201 & id
-  return $self->render_json( get_drink_by_title( $title ), status => 201 );
+  my $drink = get_drink_by_title($title);
+  return $self->render(json => encode_json( handle_result( $drink )), status => 201 );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -138,23 +201,23 @@ sub handle_put_drink {
 
   # Return error if missing parameter (400)
   if ( !defined($id) || !defined( $drink ) || !defined($drink->{'title'}) || !defined($drink->{'description'}) ) {
-    return $self->render_json( [], status => 400 );
+    return $self->render(json => [], status => 400 );
   }
 
   $drink = update_drink( $id, $drink->{'title'}, $drink->{'description'} );
 
   if ( ! defined( $drink ) ) {
-    return $self->render_json( [], status => 400 );
+    return $self->render(json => [], status => 400 );
   }
 
-  return $self->render_json( $drink, status => 200 );
+  return $self->render(json => encode_json( handle_result( $drink )), status => 200 );
 
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 sub handle_delete_drink {
   my $self = shift;
-  my $id          = $self->param( 'id' );
+  my $id  = $self->param( 'id' );
 
   # Use JSON content if parameter not defined
   if ( !defined( $id ) && defined( $self->req->content ) ) {
@@ -173,144 +236,81 @@ sub handle_delete_drink {
 
   # Return error if missing parameter (400)
   if ( ! defined($id) ) {
-    return $self->render_json( [], status => 400 );
+    return $self->render(json => [], status => 400 );
   }
 
-  my $drink = delete_drink( $id );
+  my $drink = delete_drink($id);
 
   if ( ! defined( $drink ) ) {
-    return $self->render_json( [], status => 400 );
+    return $self->render(json => [], status => 400 );
   }
 
-  return $self->render_json( $drink, status => 200 );
+  return $self->render(json => encode_json( handle_result( $drink )), status => 200 );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub add_drink {
   my ( $title, $description ) = @_;
-
-  my $dbh = get_dbh();
-
-  my $sql = 'INSERT INTO `drink`(`title`, `description`) VALUES (?, ?)';
-
-  my $sth;
-
-  eval {
-    $sth = $dbh->prepare($sql) or die $dbh->errstr;
-    my $success = $sth->execute( $title, $description );
-  };
-  if ($@) {
-    # Conflict
-    print "ERROR: $@ (while adding drink)" . "\n";
-    return 0;
-  }
-
-  return 1;
+  my $schema = get_schema();
+  return $schema->resultset('Drink')->create({
+    title => $title,
+    description => $description,
+  });
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub delete_drink {
   my ( $id ) = @_;
 
-  my $drink = get_drink_by_id( $id );
+  my $drink = get_drink_by_id($id);
 
   return undef if ! defined( $drink );
 
-  my $dbh = get_dbh();
-
-  my $sql = 'DELETE FROM `drink` WHERE `id` = ?';
-
-  my $sth;
-
-  eval {
-    $sth = $dbh->prepare($sql) or die $dbh->errstr;
-    my $success = $sth->execute( $id );
-  };
-  if ($@) {
-    # Conflict
-    print "ERROR: $@ (while deleting drink)" . "\n";
-    return undef;
-  }
-
+  $drink->delete(); 
+  
   return $drink;
-
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub update_drink {
   my ( $id, $title, $description ) = @_;
 
-  my $drink = get_drink_by_id( $id );
+  my $drink = get_drink_by_id($id);
 
   return undef if ! defined( $drink );
-
-  my $dbh = get_dbh();
-
-  my $sql = 'UPDATE `drink` SET `title` = ?, `description` = ? WHERE `id` = ?';
-
-  my $sth;
-
-  eval {
-    $sth = $dbh->prepare($sql) or die $dbh->errstr;
-    my $success = $sth->execute( $title, $description, $id );
-  };
-  if ($@) {
-    # Conflict
-    print "ERROR: $@ (while updating drink)" . "\n";
-    return undef;
-  }
+  
+  $drink->update({
+    title => $title,
+    description => $description,
+  });
 
   return $drink;
-
 }
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub get_drinks {
-  my $dbh = get_dbh();
-
-  my $sql = 'SELECT * FROM `drink`';
-
-  my $sth = $dbh->prepare($sql) or die $dbh->errstr;
-  $sth->execute() or die $dbh->errstr;
-
-  my ($rows, $row);
-  $rows = [];
-  push @$rows, $row while ( $row = $sth->fetchrow_hashref );
-
-  return $rows;
+  my $schema = get_schema();
+  my $rs = $schema->resultset('Drink');
+  return $rs;
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub get_drink_by_title {
-
   my( $title ) = @_;
-
-  my $dbh = get_dbh();
-
-  my $sql = 'SELECT * FROM `drink` WHERE `title` = ?';
-
-  my $sth = $dbh->prepare($sql) or die $dbh->errstr;
-  $sth->execute( $title ) or die $dbh->errstr;
-
-  return $sth->fetchrow_hashref;
-
+  my $schema = get_schema();
+  return $schema->resultset('Drink')->search({
+    title => $title
+  })->single;
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub get_drink_by_id {
-
   my( $id ) = @_;
-
-  my $dbh = get_dbh();
-
-  my $sql = 'SELECT * FROM `drink` WHERE `id` = ?';
-
-  my $sth = $dbh->prepare($sql) or die $dbh->errstr;
-  $sth->execute( $id ) or die $dbh->errstr;
-
-  return $sth->fetchrow_hashref;
-
+  my $schema = get_schema();
+  return $schema->resultset('Drink')->search({
+    id => $id
+  })->single;
 }
 
 

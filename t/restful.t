@@ -25,7 +25,7 @@ push @drinks, $initial_drink;
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Test get drinks matches our running list
-$t->get_ok('/api/drink')->status_is(200)->json_content_is( \@drinks );
+$t->get_ok('/api/drink')->status_is(200)->json_is( encode_json \@drinks );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add drink
@@ -41,7 +41,7 @@ $expect = {
 };
 push @drinks, $expect;
 
-$t->post_form_ok('/api/drink', $drink )->status_is(201)->json_content_is( $expect );
+$t->post_ok('/api/drink', encode_json $drink )->status_is(201)->json_is( encode_json $expect );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Try to add a drink missing description, title
@@ -49,13 +49,13 @@ $drink = {
   'title'       => "Bell's Porter"
 };
 
-$t->post_form_ok('/api/drink', $drink )->status_is(400)->json_content_is( [] );
+$t->post_ok('/api/drink', encode_json $drink )->status_is(400)->json_is( [] );
 
 $drink = {
   'description' => "A darn good porter."
 };
 
-$t->post_form_ok('/api/drink', $drink )->status_is(400)->json_content_is( [] );
+$t->post_ok('/api/drink', encode_json $drink )->status_is(400)->json_is( [] );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Try to add milk again
@@ -64,25 +64,25 @@ $drink = {
   'description' => 'It does a body good.'
 };
 
-$t->post_form_ok('/api/drink', $drink )->status_is(409)->json_content_is( [] );
+$t->post_ok('/api/drink', encode_json $drink )->status_is(409)->json_is( encode_json [] );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Test get drinks matches our running list
-$t->get_ok('/api/drink')->status_is(200)->json_content_is( \@drinks );
+$t->get_ok('/api/drink')->status_is(200)->json_is( encode_json \@drinks );
 
 # Test get individual drinks
 for my $drink ( @drinks ) {
-  $t->get_ok( '/api/drink/' . $drink->{'id'} )->status_is(200)->json_content_is( $drink );
+  $t->get_ok( '/api/drink/' . $drink->{'id'} )->status_is(200)->json_is( encode_json $drink );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Delete drink
 $drink = pop @drinks;
-$t->delete_ok( '/api/drink/' . $drink->{'id'} )->status_is(200)->json_content_is( $drink ); 
+$t->delete_ok( '/api/drink/' . $drink->{'id'} )->status_is(200)->json_is( encode_json $drink ); 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Test get drinks matches our running list
-$t->get_ok('/api/drink')->status_is(200)->json_content_is( \@drinks );
+$t->get_ok('/api/drink')->status_is(200)->json_is( encode_json \@drinks );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Update drink
@@ -92,7 +92,7 @@ $drink = {
 };
 $expect = $drinks[0]; # Expect the old milk to be returned 
 
-$t->put_ok( '/api/drink/1' => encode_json( $drink ) )->status_is(200)->json_content_is( $expect );
+$t->put_ok( '/api/drink/1' => encode_json( $drink ) )->status_is(200)->json_is( encode_json $expect );
 
 # Update the current drinks array
 $drinks[0]->{'description'} = $drink->{'description'};
@@ -110,10 +110,10 @@ $expect = {
 };
 push @drinks, $expect;
 
-$t->post_form_ok('/api/drink', $drink )->status_is(201)->json_content_is( $expect );
+$t->post_ok('/api/drink', encode_json $drink )->status_is(201)->json_is( encode_json $expect );
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Test get drinks matches our running list
-$t->get_ok('/api/drink')->status_is(200)->json_content_is( \@drinks );
+$t->get_ok('/api/drink')->status_is(200)->json_is( encode_json \@drinks );
 
 
