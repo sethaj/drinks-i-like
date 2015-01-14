@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
   }
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->add_unique_constraint([ qw/title/ ]);
 
 
 package DB;
@@ -36,6 +37,7 @@ use JSON;
 use Mojo::Log;
 my $log = Mojo::Log->new;
 use Data::Dumper;
+use Try::Tiny;
 
 my $db = "$FindBin::Bin/drinks-i-like.db";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -140,7 +142,7 @@ sub handle_get_drink {
   }
   else {
     my $drink = get_drink_by_id( $id );
-    return $self->render(json => encode_json( handle_result( $drink )), status => 400);
+    return $self->render(json => handle_result( $drink ), status => 200);
   }
 }
 
@@ -148,7 +150,7 @@ sub handle_get_drink {
 sub handle_get_drinks {
   my $self = shift;
   my $drinks = get_drinks();
-  return $self->render(json => encode_json( handle_resultset( $drinks )) );
+  return $self->render(json => handle_resultset( $drinks ) );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -162,7 +164,7 @@ sub handle_post_drink {
   # Use JSON content if parameter not defined
   if ( defined( $self->req->content ) ) {
 
-    our $drink;
+    my $drink;
 
     eval {
      $drink = decode_json( $self->req->content->asset->{'content'} );
@@ -190,7 +192,7 @@ sub handle_post_drink {
 
   # Return 201 & id
   my $drink = get_drink_by_title($title);
-  return $self->render(json => encode_json( handle_result( $drink )), status => 201 );
+  return $self->render(json => handle_result( $drink ), status => 201 );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -210,7 +212,7 @@ sub handle_put_drink {
     return $self->render(json => [], status => 400 );
   }
 
-  return $self->render(json => encode_json( handle_result( $drink )), status => 200 );
+  return $self->render(json => handle_result( $drink ), status => 200 );
 
 }
 
@@ -245,17 +247,25 @@ sub handle_delete_drink {
     return $self->render(json => [], status => 400 );
   }
 
-  return $self->render(json => encode_json( handle_result( $drink )), status => 200 );
+  return $self->render(json => handle_result( $drink ), status => 200 );
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub add_drink {
   my ( $title, $description ) = @_;
+
   my $schema = get_schema();
-  return $schema->resultset('Drink')->create({
-    title => $title,
-    description => $description,
-  });
+
+  try {
+    return $schema->resultset('Drink')->create({
+      title => $title,
+      description => $description,
+    });
+  }
+  catch {
+    $log->warn($_);
+    return;
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -266,9 +276,14 @@ sub delete_drink {
 
   return undef if ! defined( $drink );
 
-  $drink->delete(); 
-  
-  return $drink;
+  try {
+    $drink->delete(); 
+    return $drink
+  }
+  catch {
+    $log->warn($_);
+    return;
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -279,38 +294,65 @@ sub update_drink {
 
   return undef if ! defined( $drink );
   
-  $drink->update({
-    title => $title,
-    description => $description,
-  });
-
-  return $drink;
+  try {
+    $drink->update({
+      title => $title,
+      description => $description,
+    });
+    return $drink;
+  } 
+  catch {
+    $log->warn($_);
+    return;
+  }
 }
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub get_drinks {
   my $schema = get_schema();
-  my $rs = $schema->resultset('Drink');
-  return $rs;
+
+  try {
+    return $schema->resultset('Drink');
+  }
+  catch {
+    $log->warn($_);
+    return;
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub get_drink_by_title {
   my( $title ) = @_;
+
   my $schema = get_schema();
-  return $schema->resultset('Drink')->search({
-    title => $title
-  })->single;
+
+  try {
+    return $schema->resultset('Drink')->search({
+      title => $title
+    })->single;
+  }
+  catch {
+    $log->warn($_);
+    return;
+  }
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sub get_drink_by_id {
   my( $id ) = @_;
+
   my $schema = get_schema();
-  return $schema->resultset('Drink')->search({
-    id => $id
-  })->single;
+  
+  try {
+    return $schema->resultset('Drink')->search({
+      id => $id
+    })->single;
+  }
+  catch {
+    $log->warn($_);
+    return;
+  }
 }
 
 
