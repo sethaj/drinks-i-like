@@ -31,15 +31,12 @@ package main;
 use Mojolicious::Lite;
 use File::Basename;
 use lib dirname (__FILE__);
-use FindBin;
-use lib "$FindBin::Bin/../lib";
 use JSON;
 use Mojo::Log;
 my $log = Mojo::Log->new;
 use Data::Dumper;
 use Try::Tiny;
 
-my $db = "$FindBin::Bin/drinks-i-like.db";
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 sub build_database {
@@ -60,9 +57,7 @@ sub build_database {
 
 my $schema;
 sub get_schema {
-  #return DB->connect("dbi:SQLite:dbname=$db");
   return DB->connect("dbi:SQLite:dbname=drinks-i-like.db");
-  #return $schema || DB->connect("dbi:SQLite:dbname=:memory:");
 };
 
 sub handle_resultset {
