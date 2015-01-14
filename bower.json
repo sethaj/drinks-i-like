@@ -1,0 +1,23 @@
+{
+  "name": "drinks-i-like",
+  "version": "0.0.0",
+  "homepage": "https://github.com/sethaj/drinks-i-like",
+  "authors": [
+    "Seth A. Johnson <seth.adams.johnson@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/js/bower_components/",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.3",
+    "angular": "~1.3.8",
+    "bootstrap": "~3.3.1"
+  }
+}

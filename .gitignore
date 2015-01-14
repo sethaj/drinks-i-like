@@ -1,4 +1,6 @@
 lib/MyConfig.pm
 *.db
 *.swp
+public/bower_components/
+
 
