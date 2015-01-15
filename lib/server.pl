@@ -57,7 +57,7 @@ sub build_database {
 
 my $schema;
 sub get_schema {
-  return DB->connect("dbi:SQLite:dbname=drinks-i-like.db");
+  return $schema || DB->connect("dbi:SQLite:dbname=drinks-i-like.db");
 };
 
 sub handle_resultset {
@@ -363,26 +363,11 @@ __DATA__
   <form name="" id="new-drink">
     <h1>New Drink</h1>
     <label for="title">Name</label>
-    <input type="text" name="title" id="add-title" />
+    <input type="text" name="title" id="add-title" ng-model="newDrink.title" />
     <label for="description">Description</label>
-    <textarea name="description" id="add-description"></textarea>
-    <input type="submit" id="add-drink" value="Add drink" />
-  </form>
+    <textarea name="description" id="add-description" ng-model="newDrink.description"></textarea>
+    <input type="submit" id="add-drink" value="Add drink" ng-click="addDrink()" />
 </aside>
-<% my $rows = [
-    { title => 'Test #1', description => 'Testing a description #1' },
-    { title => 'Test #2', description => 'Testing a description #2' },
-    { title => 'Test #3', description => 'Testing a description #3' },  
-  ]; %>
-
-<script id="drinks-template" type="template/jquery">
-  <tr>
-    <td><input class="title" id="${title}" value="${title}" />
-        <input type="hidden" class="id" value="${id}" /></td>
-    <td><textarea class="description" >${description}</textarea></td>
-    <td class="actions"><a href="#" class="remove-drink">x</a></td>
-  </tr>
-</script>
 
 <section>
   <table id="drinks">
@@ -391,15 +376,11 @@ __DATA__
       <th class="description">Description</th>
       <th class="actions">&nbsp;</th>
     </tr>
-
-    %# This dummy data will be removed by backbone
-    <% for my $row ( @$rows ) { %>
-      <tr>
-        <td><input class="title" name="" value="<%= $row->{'title'} %>" /></td>
-        <td><input class="description" name="" value="<%= $row->{'description'} %>" /></td>
-        <td><a href="#">x</a></td>
+      <tr ng-repeat="drink in drinkList">
+        <td><input class="title" name="" value="{{ drink.title }}" /></td>
+        <td><input class="description" name="" value="{{ drink.description }}" /></td>
+        <td><a href="#" ng-click="removeDrink(drink.id)">x</a></td>
       </tr>
-    <% } %>
   </table>
 </section>
  
@@ -408,22 +389,20 @@ __DATA__
 <html>
   <head>
     <title><%= title %></title>
-    <script src="/js/jquery.js"></script>
-    <script src="/js/json2.js"></script>
-    <script src="/js/underscore.js"></script>
-    <script src="/js/backbone.js"></script>
-    <script src="/js/modernizr.custom.76020.js"></script>
-    <script src="/js/jquery.tmpl.min.js"></script>
-    <script src="/js/library.js"></script>
-    <link rel="stylesheet" type="text/css" media="screen" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="/bower_components/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" media="screen" href="/css/screen.css"/>
   </head>
-  <body>
+  <body ng-app="DrinkApp" ng-controller="DrinkController">
     <header>
       <h1><%= title %></h1>
     </header>
     <div role="main">
       <%= content %>
     </div>
+
+    <script src="/bower_components/angular/angular.min.js"></script>
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/js/app.js"></script>
   </body>
 </html>
