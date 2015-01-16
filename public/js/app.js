@@ -19,7 +19,7 @@ drinkApp.service('drinkService', ['$http', function($http) {
       return $http.get('/api/drink/' + id)
     },
     updateDrink: function(drink) {
-      return $http.put('/api/drink/' + id, drink)
+      return $http.put('/api/drink/' + drink.id, drink)
     },
     createDrink: function(drink) {
       return $http.post('/api/drink', drink)
@@ -34,26 +34,31 @@ drinkApp.service('drinkService', ['$http', function($http) {
 
 drinkApp.controller('DrinkController', ['$scope', 'drinkService', function($scope, drinkService) {
 
-  // list current drinks
-  var refresh = function() {
-    drinkService.getDrinks().then(function(data) {
-      $scope.drinkList = data.data;
+  $scope.getDrinks = function() {
+    drinkService.getDrinks().then(function(result) {
+      $scope.drinkList = result.data;
     });
   };
-  refresh();
 
-  // add a new drink
   $scope.addDrink = function() {
-    drinkService.createDrink($scope.newDrink);
-    refresh();
-  }; 
-
-  // remove a drink
-  $scope.removeDrink = function(id) {
-    drinkService.destroyDrink(id);
-    refresh();
+    drinkService.createDrink($scope.newDrink).then(function(result) {
+      $scope.drinkList.push(result.data);
+    });
   };
 
+  $scope.removeDrink = function(id) {
+    drinkService.destroyDrink(id).then(function(result) {
+      $scope.getDrinks();
+    });
+  };
+
+  $scope.editDrink = function(drink) {
+    drinkService.updateDrink(drink).then(function(result) {
+      $scope.getDrinks();
+    });
+  };
+
+  $scope.getDrinks();
 
 }]);
 

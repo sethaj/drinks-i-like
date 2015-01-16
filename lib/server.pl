@@ -360,13 +360,14 @@ __DATA__
 % layout 'default';
 % title 'Drinks I Like';
 <aside>
-  <form name="" id="new-drink">
+  <form ng-submit="addDrink()">
     <h1>New Drink</h1>
     <label for="title">Name</label>
     <input type="text" name="title" id="add-title" ng-model="newDrink.title" />
     <label for="description">Description</label>
     <textarea name="description" id="add-description" ng-model="newDrink.description"></textarea>
-    <input type="submit" id="add-drink" value="Add drink" ng-click="addDrink()" />
+    <input type="submit" id="add-drink" value="Add drink" />
+  </form>
 </aside>
 
 <section>
@@ -377,9 +378,15 @@ __DATA__
       <th class="actions">&nbsp;</th>
     </tr>
       <tr ng-repeat="drink in drinkList">
-        <td><input class="title" name="" value="{{ drink.title }}" /></td>
-        <td><input class="description" name="" value="{{ drink.description }}" /></td>
-        <td><a href="#" ng-click="removeDrink(drink.id)">x</a></td>
+        <td>
+          <input ng-blur="editDrink(drink)" ng-model="drink.title"></input>
+        </td>
+        <td>
+          <input ng-blur="editDrink(drink)" ng-model="drink.description" type="text"></input>
+        </td>
+        <td>
+          <a href="#" ng-click="removeDrink(drink.id)">x</a>
+        </td>
       </tr>
   </table>
 </section>
