@@ -43,6 +43,7 @@ For more information on building a RESTful interface, see: [http://goo.gl/YjyDM]
 
 1. (Create) To add a drink: POST /api/drink/
 
+```
     jQuery.post("/api/drink", {
       "title": "Espresso",
       "description": '"It is inhumane, in my opinion, to force people who have a genuine medical need for coffee to wait in line behind people who apparently view it as some kind of recreational activity." - Dave Barry',
@@ -52,27 +53,27 @@ For more information on building a RESTful interface, see: [http://goo.gl/YjyDM]
         console.log(textStatus); 
         console.dir(jqXHR);
     });
-
+```
 2. (Read)   To get a drink: GET /api/drink/:id
-
+```
     jQuery.get("/api/drink/1", function(data, textStatus, jqXHR) {
             console.log("Response: ");
       console.dir(data);
       console.log(textStatus);
       console.dir(jqXHR);
     });
-
+```
   Or to get all drinks: GET /api/drink/
-
+```
     jQuery.get("/api/drink/", function (data, textStatus, jqXHR) {
             console.log("Response: ");
         console.dir(data);
         console.log(textStatus);
         console.dir(jqXHR);
     });
-
+```
 3. (Update) To update a drink: PUT /api/drink/:id
-
+```
     jQuery.ajax({
         url: "/api/drink/1",
         type: "PUT",
@@ -86,9 +87,9 @@ For more information on building a RESTful interface, see: [http://goo.gl/YjyDM]
             console.dir(jqXHR);
         }
     });
-
+```
 4. (Delete) To delete a drink: DELETE /api/drink/:id
-
+```
     jQuery.ajax({
         url: "/api/products/1", 
         type: "DELETE",
@@ -99,7 +100,7 @@ For more information on building a RESTful interface, see: [http://goo.gl/YjyDM]
             console.dir(jqXHR); 
         }
     });
-
+```
 Useful Resources
 ================
 
