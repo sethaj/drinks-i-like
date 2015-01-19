@@ -25,7 +25,7 @@ Run
 
 1. Run bin/server:
 
-  $ bin/server 
+  `carton exec bin/server` 
   [Wed May 16 10:18:52 2012] [info] Server listening (http://*:3000)
   Server available at http://127.0.0.1:3000.
 
@@ -100,7 +100,8 @@ For more information on building a RESTful interface, see: [http://goo.gl/YjyDM]
         }
     });
 
-===== USEFUL RESOURCES =====
+Useful Resources
+================
 
 * Develop a RESTful API Using Node.js With Express and Mongoose [http://goo.gl/G1u4j]
 
