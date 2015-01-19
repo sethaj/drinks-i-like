@@ -13,11 +13,12 @@ This is a fork of the awesome _drinks_i_like_(https://github.com/bryanesmith/dri
 Install
 =======
 
-* plenv
-* carton
-* `carton install`
-* bower and nodejs
-* `bower install`
+* Install a newish perl with plenv(https://github.com/tokuhirom/plenv)
+* Install cpanminus with `plenv install-cpanm`
+* Install carton with `cpanm carton`
+* Install perl dependancies `carton install`
+* Install bower (and nodejs)
+* Install javascript dependancies `bower install`
 
 
 Run
