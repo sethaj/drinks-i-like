@@ -43,6 +43,8 @@ drinkApp.controller('DrinkController', ['$scope', 'drinkService', function($scop
   $scope.addDrink = function() {
     drinkService.createDrink($scope.newDrink).then(function(result) {
       $scope.drinkList.push(result.data);
+      $scope.newDrink = '';
+      $scope.drinkForm.$setPristine();
     });
   };
 

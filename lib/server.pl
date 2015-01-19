@@ -359,37 +359,44 @@ __DATA__
 @@ index.html.ep
 % layout 'default';
 % title 'Drinks I Like';
-<aside>
-  <form ng-submit="addDrink()">
-    <h1>New Drink</h1>
-    <label for="title">Name</label>
-    <input type="text" name="title" id="add-title" ng-model="newDrink.title" />
-    <label for="description">Description</label>
-    <textarea name="description" id="add-description" ng-model="newDrink.description"></textarea>
-    <input type="submit" id="add-drink" value="Add drink" />
-  </form>
-</aside>
 
-<section>
-  <table id="drinks">
-    <tr>
-      <th class="title">Name</th>
-      <th class="description">Description</th>
-      <th class="actions">&nbsp;</th>
-    </tr>
-      <tr ng-repeat="drink in drinkList">
-        <td>
-          <input ng-blur="editDrink(drink)" ng-model="drink.title"></input>
-        </td>
-        <td>
-          <input ng-blur="editDrink(drink)" ng-model="drink.description" type="text"></input>
-        </td>
-        <td>
-          <a href="#" ng-click="removeDrink(drink.id)">x</a>
-        </td>
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover">
+      <tr>
+        <th class="title">Name</th>
+        <th class="description">Description</th>
+        <th class="actions">&nbsp;</th>
       </tr>
-  </table>
-</section>
+        <tr ng-repeat="(id, drink) in drinkList">
+          <td>
+            <input id="{{ 'drink-title-' + id }}" class="form-control" ng-blur="editDrink(drink)" ng-model="drink.title"></input>
+          </td>
+          <td>
+            <input id="{{ 'drink-description-' + id }}" class="form-control" ng-blur="editDrink(drink)" ng-model="drink.description" type="text"></input>
+          </td>
+          <td>
+            <a href="#" ng-click="removeDrink(drink.id)">x</a>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3">
+          </td>
+        </tr>
+        <tr>
+          <form name="drinkForm" ng-submit="addDrink()" class="form-inline">
+            <td>
+              <input class="form-control" type="text" name="title" id="add-title" ng-model="newDrink.title" placeholder="New Title" />
+            </td>
+            <td>
+              <input class="form-control" type="text" name="description" id="add-description" ng-model="newDrink.description" placeholder="New Description" />
+            </td>
+            <td>
+              <button type="submit" class="btn btn-primary">Add Drink</button>
+            </td>
+          </form>
+        </tr>
+    </table>
+  </div>
  
 @@ layouts/default.html.ep
 <!doctype html>
@@ -397,16 +404,18 @@ __DATA__
   <head>
     <title><%= title %></title>
     <link rel="stylesheet" type="text/css" media="screen" href="/bower_components/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" media="screen" href="/css/screen.css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="/css/animate.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <body ng-app="DrinkApp" ng-controller="DrinkController">
-    <header>
-      <h1><%= title %></h1>
-    </header>
-    <div role="main">
-      <%= content %>
+    <div class="container-fluid" role="main">
+      <div class="row-fluid">
+        <div class="well pagination-centered">
+          <h1><%= title %></h1>
+          <%= content %>
+        </div>
+      <div>
     </div>
-
     <script src="/bower_components/angular/angular.min.js"></script>
     <script src="/bower_components/jquery/dist/jquery.min.js"></script>
     <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
