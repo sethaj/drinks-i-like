@@ -1,65 +1,27 @@
-===== ABOUT =====
+About
+=====
 
-A simple, single-page web application that allows you to create, read, update and delete drinks that you like. Uses Mojolicious::Lite to create a RESTful interface, and Backbone.js to manage the communication between the server and the client.
+This is a fork of the awesome _drinks_i_like_(https://github.com/bryanesmith/drinks-i-like) with the following changes:
 
-===== INSTALL =====
+* MySQL replaced with SQLite
+* DBIx::Class ORM added
+* Backbone replaced with Angular
+* Twitter Bootstrap added
+* Carton(https://github.com/perl-carton/carton) added to manage perl dependancies
+* Bower(http://bower.io/) added to manage javascript dependancies
 
-Required:
+Install
+=======
 
-  * MySQL (5.1.62 or greater)
-  * Perl (5.10.1 or greater) and the following modules:
-    - DBI and DBD::mysql
-  * Mojolicious
-
-Optional:
-
-  * Test::More
-  * FindBin
-
-1. From your terminal, navigate into the root directory for this project:
-
-  $ cd ~/Sources/drinks-i-like
-
-2. Using the MySQL client, create the database `drinks_i_like`, as well as a user with the same name (take note of the password you use):
-
-  mysql> CREATE DATABASE `drinks_i_like`;
-  Query OK, 1 row affected (0.07 sec)
+* plenv
+* carton
+* `carton install`
+* bower and nodejs
+* `bower install`
 
 
-  mysql> GRANT ALL PRIVILEGES ON `drinks_i_like`.* TO drinks_i_like@localhost IDENTIFIED BY 'mysecretpassword';
-  Query OK, 0 rows affected (0.15 sec)
-
-  mysql>
-
-Note the password you use for this new user; you'll set it in step #5.
-
-3. From the MySQL client, run the SQL script, install/init.sql, to generate the table(s) and sample data.
-
-  mysql> \. install/init.sql
-  Database changed
-  Query OK, 0 rows affected (0.00 sec)
-
-  Query OK, 0 rows affected (0.09 sec)
-
-  Query OK, 1 row affected (0.01 sec)
-
-  mysql> 
-
-4. Create a configuration file using the sample, and set the password you used:
-
-  $ cp lib/MyConfig.pm.example lib/MyConfig.pm
-  
-5. Open this configuration file (lib/MyConfig.pm) and set the password:
-
-  package Config;
-
-  sub db_name     { 'drinks_i_like' }
-  sub db_username { 'drinks_i_like' }
-  sub db_password { 'mysecretpassword' } # <-- HERE
-
-  1;
-
-===== RUN =====
+Run
+===
 
 1. Run bin/server:
 
@@ -71,7 +33,9 @@ You can modify the PORT variable in this script to select a different port.
 
 2. In your browser, visit: http://127.0.0.1:3000
 
-===== RESTFUL INTERFACE =====
+
+Restful Interface
+=================
 
 For each of the following, if you visit the site's home page (http://127.0.0.1/ by default), you can run the specified jQuery command from the JavaScript console in your browser to test the functionality.
 
